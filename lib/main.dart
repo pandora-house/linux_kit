@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:linux_kit/fmedia_linux.dart';
 import 'package:linux_kit/web_camera_ffmpeg_mixin.dart';
+import 'package:media_kit/media_kit.dart' as m_kit;
 
 void main() {
+  m_kit.MediaKit.ensureInitialized();
   runApp(const MyApp());
 }
 
@@ -28,28 +30,32 @@ class MyHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        children: [
-          ElevatedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const FMediaRecorder()),
-              );
-            },
-            child: const Text('Fmedia recorder'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => const WebCameraRecorder()),
-              );
-            },
-            child: const Text('Webcamera recorder'),
-          ),
-        ],
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            FilledButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const FMediaRecorder()),
+                );
+              },
+              child: const Text('Fmedia recorder'),
+            ),
+            FilledButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const WebCameraRecorder()),
+                );
+              },
+              child: const Text('Webcamera recorder'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -72,9 +78,25 @@ class _WebCameraRecorderState extends State<WebCameraRecorder>
       appBar: AppBar(
         title: const Text('Webcamera recorder'),
       ),
-      // body: webCameraOpenView(),
+      body: webCameraOpenView(),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () async {
+          if (_recording) {
+            setState(() {
+              _recording = false;
+            });
+            final path = await stop();
+            print('=============');
+            print(path);
+            if (!context.mounted) return;
+            Navigator.of(context).pop();
+          } else {
+            setState(() {
+              _recording = true;
+            });
+            await start();
+          }
+        },
         child: Icon(_recording ? Icons.stop : Icons.play_arrow),
       ),
     );
@@ -102,9 +124,15 @@ class _FMediaRecorderState extends State<FMediaRecorder> {
         child: IconButton(
           onPressed: () async {
             if (_recording) {
+              setState(() {
+                _recording = false;
+              });
               final path = await _fmedia.stop();
               print(path);
             } else {
+              setState(() {
+                _recording = true;
+              });
               await _fmedia.started();
             }
           },
