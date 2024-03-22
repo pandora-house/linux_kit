@@ -28,7 +28,6 @@ mixin WebCameraFfmpegMixin {
     ),
   );
 
-  /// отключаем буффер при воспроизведении через mpv
   Future<void> _initCameraPlayerProperty() async {
     if (_cameraPlayer.platform is m_kit.NativePlayer) {
       final native = _cameraPlayer.platform! as m_kit.NativePlayer;
